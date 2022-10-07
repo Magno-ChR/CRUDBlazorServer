@@ -1,0 +1,116 @@
+﻿@page "/"
+@using CRUDBlazorServer.Data;
+@using CRUDBlazorServer.Services;
+@inherits OwningComponentBase<CurrencyServices>
+<PageTitle>Index</PageTitle>
+
+
+
+
+<div style="text-align:center;"> 
+    <h3>Sistema CRUD en Postgres</h3>
+    <hr/>
+    <button class="btn btn-primary" @onclick="Showpopup">
+        Registrar
+    </button>
+    @if(popup){
+        <div class="modal" tabindex="-1" style="display:block">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Nuevo Registro Currency</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar" @onclick="Closepopup"></button>
+                    </div>
+                    <EditForm Model="cobj" OnValidSubmit="InsertarRegistro">
+                    <div class="modal-body">
+                       <table class="table">
+                                <!-- <tr>
+                               <td>Id</td>
+                                <td><input type="text" placeholder="Número de ID..." @bind="cobj.id" readonly/></td>
+                                </tr>-->
+                            <tr>
+                                <td>Nombre</td>
+                                    <td><input id ="nombre" type="text" placeholder="Nombre del Objeto..." @bind="cobj.nombre" /></td>
+                            </tr>
+                             <tr>
+                                <td>Precio</td>
+                                    <td><input id="precio" type="text" placeholder="Precio del Objeto..." @bind="cobj.precio"/></td>
+                            </tr>
+                       </table>
+                    </div>
+                    <div class="modal-footer">
+
+                        <button type="submit" class="btn btn-primary" @onclick="Closepopup">Guardar</button>
+                    </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+    <table class="table">
+        <tr>
+            <th>Id</th>
+            <th>Curency</th>
+            <th>Precio</th>
+            <th>Opciones</th>
+        </tr>
+        
+        @foreach(var item in clist){
+            <tr>
+                <td>@item.id</td>
+                <td>@item.nombre</td>
+                <td>@item.precio</td>
+                <td class="btn btn-warning" @onclick="(()=>GetCurrencyDetails(item))">Editar</td>
+                
+                <td class="btn btn-danger" @onclick="(()=>BorrarRegistro(item))">Borrar</td>
+            </tr>
+        }
+    </table>
+    @code{
+        IList<CurrencyClass> clist;
+
+        CurrencyClass cobj = new CurrencyClass();
+
+        bool popup = false;
+        void Showpopup(){
+            cobj = new CurrencyClass();
+            popup = true;
+        }
+        void Closepopup(){
+            popup = false;
+            
+        }
+        protected override void OnInitialized()
+        {
+            clist = Service.GetAllCurrency();
+        }
+        void InsertarRegistro(){
+            var updatedetails = false;
+            if(cobj.id>0){
+
+                updatedetails = Service.Actualizar(cobj);
+                popup = false;
+                
+            }
+
+            else{
+                cobj.id = 0;
+                Service.Insertar(cobj);
+            }
+            cobj = new CurrencyClass();
+            clist = Service.GetAllCurrency();
+        }
+        void GetCurrencyDetails(CurrencyClass cedit){
+            cobj = cedit;
+            popup = true;
+
+        }
+
+        void BorrarRegistro(CurrencyClass cdel){
+            var r = Service.Borrar(cdel);
+            clist.Clear();
+            clist = Service.GetAllCurrency();
+        }
+
+    }
+</div>
